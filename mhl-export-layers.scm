@@ -106,6 +106,7 @@
 (define (mhl-export-layers image
                            folder
                            filename-as
+                           filename-prefix
                            filetype
                            visible-only
                            linked-only)
@@ -132,6 +133,7 @@
               (layer (car (list-tail layers i)))
               (file-name (string-append folder
                                         "/"
+                                        filename-prefix
                                         (if
                                           (= filename-as 0)
                                           ; then filename from layer name
@@ -171,6 +173,7 @@
                     SF-IMAGE "Image" 0
                     SF-DIRNAME "Folder name" "."
                     SF-OPTION "Filename from layer" '("name" "number")
+                    SF-STRING "Filename prefix" ""
                     SF-STRING "File type extension" "png"
                     SF-TOGGLE "Visible layers only" FALSE
                     SF-TOGGLE "Linked layers only"  FALSE
