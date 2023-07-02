@@ -75,6 +75,30 @@
 
   name)
 
+(define (mhl-el-compile-name filename-as
+                             layer-name
+                             layer-index
+                             n-of-layers)
+  (define name "")
+  ; filename-as: 0-name, 1-number, 2-number-name
+
+  (cond ( ;if filename-as layer name
+         (= filename-as 0)
+         (set! name layer-name))
+        ( ;if filename-as layer number
+          (= filename-as 1)
+          (set! name (mhl-el-index-to-name layer-index
+                                           n-of-layers)))
+        ( ;if filename-as layer number + layer name
+          (= filename-as 2)
+          (set! name (string-append (mhl-el-index-to-name layer-index
+                                                          n-of-layers)
+                                    "-"
+                                    layer-name)))
+        ( else (throw "Something went horribly wrong -_-'")))
+
+  name)
+
 
 ; Hide all layers from the list
 ; and return a list with the initial visibility values
@@ -134,12 +158,11 @@
               (file-name (string-append folder
                                         "/"
                                         filename-prefix
-                                        (if
-                                          (= filename-as 0)
-                                          ; then filename from layer name
+                                        (mhl-el-compile-name
+                                          filename-as
                                           (car (gimp-layer-get-name layer))
-                                          ; else filename from layer number
-                                          (mhl-el-index-to-name i n-of-layers))
+                                          i
+                                          n-of-layers)
                                         "."
                                         filetype)))
              (gimp-item-set-visible layer TRUE)
@@ -172,7 +195,7 @@
                     "*"
                     SF-IMAGE "Image" 0
                     SF-DIRNAME "Folder name" "."
-                    SF-OPTION "Filename from layer" '("name" "number")
+                    SF-OPTION "Filename from layer" '("name" "number" "number-name")
                     SF-STRING "Filename prefix" ""
                     SF-STRING "File type extension" "png"
                     SF-TOGGLE "Visible layers only" FALSE
