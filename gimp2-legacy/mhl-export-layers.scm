@@ -4,7 +4,7 @@
 ;
 ;GIMP Script-Fu that exports layers to separate files.
 ;
-;Copyright (C) 2023-2026 Melon (https://github.com/Mhlov)
+;Copyright (C) 2023 Melon (https://github.com/Mhlov)
 ;
 ; LICENSE
 ;
@@ -22,29 +22,44 @@
 ;    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;
 ;==============================================================================
-;Tested on GIMP 3.2.4
+;Tested on GIMP 2.10.34
 
 
-(define (mhl-el-get-layers list-of-layers
-                           visible-only)
+(define (mhl-el-get-linked-flag item
+                                linked-only)
+  (if
+    (or
+      (and (= TRUE linked-only)
+           (= TRUE (car (gimp-item-get-linked item))))
+      (= FALSE linked-only))
+    ; then
+    FALSE
+    ; else
+    TRUE))
 
-  (define layers '())
+
+(define (mhl-el-get-layers layers
+                           visible-only
+                           linked-only)
+  (define result-list '())
 
   (for-each
-
     (lambda (layer)
       (if
         (or
           (and (= TRUE visible-only)
                (= TRUE (car (gimp-item-get-visible layer))))
           (= FALSE visible-only))
-        (set! layers (append layers
-                             (list layer)))))
+        (if
+          (or
+            (and (= TRUE linked-only)
+                 (= TRUE (car (gimp-item-get-linked layer))))
+            (= FALSE linked-only))
+          (set! result-list (append result-list
+                               (list layer))))))
+    layers)
 
-    ; list of layers
-    (vector->list (car list-of-layers)))
-
-  layers)
+  result-list)
 
 
 ; Make a string for filename from the layer list index
@@ -93,8 +108,7 @@
     (lambda (layer)
       (set! initial-values
         (append initial-values (gimp-item-get-visible layer)))
-
-        (gimp-item-set-visible layer FALSE))
+      (gimp-item-set-visible layer FALSE))
     layers)
   initial-values)
 
@@ -119,22 +133,21 @@
                            filename-prefix
                            filetype
                            visible-only
-                           selected-only)
+                           linked-only)
 
   ; Start of the undo group
   (gimp-image-undo-group-start image)
 
-  (define all-layers (vector->list (car (gimp-image-get-layers image))))
+  (define all-layers (vector->list (cadr (gimp-image-get-layers image))))
 
-  (define layers (mhl-el-get-layers (if (= TRUE selected-only)
-                                        ;then
-                                        (gimp-image-get-selected-layers image)
-                                        ;else
-                                        (gimp-image-get-layers image))
-                                    visible-only))
+  (define layers (mhl-el-get-layers all-layers
+                                    visible-only
+                                    linked-only))
   (define n-of-layers (length layers))
 
-  ; Hide all layers and show only the desired one.
+  ; Unfortunately the 'gimp-file-save' procedure saves separate layers only
+  ; in the non-interactive(1) run-mode. So we need to hide all layers
+  ; and show only the desired one.
   (define initial-visibility-values (mhl-el-hide-all-layers all-layers))
 
   (let ((i 0))
@@ -147,15 +160,17 @@
                                         filename-prefix
                                         (mhl-el-compile-name
                                           filename-as
-                                          (car (gimp-item-get-name layer))
+                                          (car (gimp-layer-get-name layer))
                                           i
                                           n-of-layers)
                                         "."
                                         filetype)))
              (gimp-item-set-visible layer TRUE)
-             (gimp-message file-name)
              (gimp-file-save (if (= i 0) 0 2)
+                             ;1
                              image
+                             layer
+                             file-name
                              file-name)
              (gimp-item-set-visible layer FALSE)
              )
@@ -172,20 +187,18 @@
 
 
 (script-fu-register "mhl-export-layers"
-                    "Export Layers"
+                    _"<Image>/Script-Fu/MHL-Export layers"
                     "Export layers in separate files."
                     "MHL <mhl@localhost>"
                     "MHL"
                     "2023"
                     "*"
                     SF-IMAGE "Image" 0
-                    SF-DIRNAME "Folder name" "./"
+                    SF-DIRNAME "Folder name" "."
                     SF-OPTION "Filename from layer" '("name" "number" "number-name")
                     SF-STRING "Filename prefix" ""
                     SF-STRING "File type extension" "png"
                     SF-TOGGLE "Visible layers only" FALSE
-                    SF-TOGGLE "Selected layers only"  FALSE
+                    SF-TOGGLE "Linked layers only"  FALSE
                     )
 
-(script-fu-menu-register "mhl-export-layers"
-                         "<Image>/Filters/MHL")

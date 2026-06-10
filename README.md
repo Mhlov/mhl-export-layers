@@ -1,23 +1,33 @@
 # MHL-Export Layers
-GIMP Script-Fu that exports layers to separate files.
-You can select desired layers with visibility or/and linking.
+
+This Script-Fu plugin for GIMP 3.x exports layers into separate image files.
+It lets you control which layers are exported using visibility and/or selection.
 
 ![screenshot-01](screen-01.png)
 
 ## INSTALLATION
-Place the script file in to the Gimp scripts directory. You can find it in the preferences.
+
+Copy `mhl-export-layers.scm` into your GIMP scripts directory and restart GIMP.
+
+> [!TIP]
+> You can find the script directories in GIMP preferences:
+>
 > Edit -> Preferences -> Folders -> Scripts
 
 ## USAGE
 
-The export dialogue accessible through the `Script-Fu -> MHL-Export layers` menu.
-You can point a directory to where export layers, how to name files,
-specify a file type.
-Also if you have selected the desired layers with visibility or/and linking,
-then you can set the corresponding switches. Or turn them off when you want
-to export all layers.
+The script is available from the GIMP main menu:
+> Filters -> MHL -> Export Layers
 
-## Note
-This is a simple alternative for the [kamilburda/gimp-export-layers](https://github.com/kamilburda/gimp-export-layers) plug-in.
-And it can save you some time when you don't want to install Python2 😄.
+You can choose an output directory, configure file naming, and specify a file
+format. Select desired layers with visibility and/or selection and set the
+corresponding switches. Or turn them off when you want to export all layers.
 
+> [!NOTE]
+> This script works only with top-level layers (no recursion into groups).
+
+
+## GIMP 2 (Legacy)
+
+The previous version for GIMP 2.x is available in the
+`gimp2-legacy` directory.
