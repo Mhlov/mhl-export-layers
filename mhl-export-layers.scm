@@ -153,7 +153,7 @@
                                         "."
                                         filetype)))
              (gimp-item-set-visible layer TRUE)
-             (gimp-message file-name)
+             ;(gimp-message file-name)
              (gimp-file-save (if (= i 0) 0 2)
                              image
                              file-name)
